@@ -7,8 +7,7 @@ class ProjectMember(db.Model):
 
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    role = db.Column(db.Enum('owner', 'admin', 'member', 'viewer', 
-                            name='member_role'), default='member', nullable=False)
+    role = db.Column(db.String(50), default='member', nullable=False)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __init__(self, project_id, user_id, role='member'):
