@@ -6,6 +6,12 @@ from functools import wraps
 def api_request(method, endpoint, data=None, params=None):
     """Make authenticated API requests"""
     base_url = current_app.config.get('API_BASE_URL', 'http://localhost:5000')
+    
+    # In production, if base_url is empty or relative, construct full URL from request
+    if not base_url or base_url == '':
+        from flask import request
+        base_url = f"{request.scheme}://{request.host}"
+    
     url = f"{base_url}/api{endpoint}"
     
     headers = {

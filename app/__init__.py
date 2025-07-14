@@ -59,9 +59,9 @@ def create_app(config_name='default'):
     api.add_namespace(comments_ns, path='/api/comments')
     
     # Set API base URL for frontend to communicate with backend
-    # In production, use the same domain; in development, use localhost
+    # In production, use empty string to build from request; in development, use localhost
     if os.environ.get('FLASK_ENV') == 'production':
-        app.config['API_BASE_URL'] = ''  # Use relative URLs in production
+        app.config['API_BASE_URL'] = ''  # Will be built dynamically in utils.py
     else:
         app.config['API_BASE_URL'] = os.environ.get('API_BASE_URL', 'http://localhost:5000')
     
