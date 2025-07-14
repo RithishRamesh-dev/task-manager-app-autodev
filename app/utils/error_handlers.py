@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, request
 from werkzeug.exceptions import HTTPException
 from marshmallow import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
