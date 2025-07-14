@@ -44,15 +44,7 @@ with app.app_context():
     """Create database tables on startup."""
     db.create_all()
 
-# Health check endpoint
-@app.route('/health')
-def health_check():
-    """Health check endpoint for deployment monitoring."""
-    return {
-        'status': 'healthy',
-        'message': 'Task Manager API is running',
-        'websocket_enabled': True
-    }
+# Health check endpoint is defined in app/__init__.py at /api/health
 
 # WebSocket status endpoint
 @app.route('/websocket/status')
