@@ -1,12 +1,19 @@
 from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
+from flask_cors import CORS
+from flask_restx import Api
 from config import config
 import requests
 import os
 
+# Application version
+__version__ = '1.0.0'
+
 db = SQLAlchemy()
 migrate = Migrate()
+jwt = JWTManager()
 
 
 def create_app(config_name='default'):
@@ -16,6 +23,41 @@ def create_app(config_name='default'):
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
+    jwt.init_app(app)
+    CORS(app)
+    
+    # Initialize API with Swagger documentation
+    api = Api(
+        app,
+        version='1.0',
+        title='Task Manager API',
+        description='A comprehensive task management application API',
+        doc='/api/docs',
+        authorizations={
+            'Bearer': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'Authorization',
+                'description': 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"'
+            }
+        },
+        security='Bearer'
+    )
+    
+    # Register error handlers
+    from app.utils.error_handlers import register_error_handlers
+    register_error_handlers(app)
+    
+    # Register API blueprints
+    from app.api.auth import auth_ns
+    from app.api.projects import projects_ns
+    from app.api.tasks import tasks_ns
+    from app.api.comments import comments_ns
+    
+    api.add_namespace(auth_ns, path='/api/auth')
+    api.add_namespace(projects_ns, path='/api/projects')
+    api.add_namespace(tasks_ns, path='/api/tasks')
+    api.add_namespace(comments_ns, path='/api/comments')
     
     # Set API base URL for frontend to communicate with backend
     app.config['API_BASE_URL'] = os.environ.get('API_BASE_URL', 'http://localhost:5000')
@@ -41,5 +83,10 @@ def create_app(config_name='default'):
             current_user=session.get('user'),
             is_authenticated=bool(session.get('access_token'))
         )
+    
+    @app.route('/api/health')
+    def health_check():
+        """Health check endpoint"""
+        return {'status': 'healthy', 'message': 'Task Manager API is running'}
     
     return app
