@@ -74,7 +74,7 @@ class ProjectList(Resource):
     @projects_ns.response(401, 'Authentication required')
     def get(self):
         """Get list of user's projects"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
@@ -90,7 +90,7 @@ class ProjectList(Resource):
     @projects_ns.response(401, 'Authentication required')
     def post(self):
         """Create a new project"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         try:
             # Validate input data
@@ -120,7 +120,7 @@ class ProjectDetail(Resource):
     @projects_ns.response(404, 'Project not found')
     def get(self, project_id):
         """Get project details"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
@@ -144,7 +144,7 @@ class ProjectDetail(Resource):
     @projects_ns.response(404, 'Project not found')
     def put(self, project_id):
         """Update project details"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         project = Project.query.get(project_id)
         if not project:
@@ -183,7 +183,7 @@ class ProjectDetail(Resource):
     @projects_ns.response(404, 'Project not found')
     def delete(self, project_id):
         """Delete project (soft delete)"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         project = Project.query.get(project_id)
         if not project:
@@ -208,7 +208,7 @@ class ProjectMembers(Resource):
     @projects_ns.response(404, 'Project not found')
     def get(self, project_id):
         """Get project members"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
@@ -251,7 +251,7 @@ class ProjectMembers(Resource):
     @projects_ns.response(409, 'User already a member')
     def post(self, project_id):
         """Add member to project"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         project = Project.query.get(project_id)
         if not project:
@@ -306,7 +306,7 @@ class ProjectMemberDetail(Resource):
     @projects_ns.response(404, 'Project or member not found')
     def delete(self, project_id, user_id):
         """Remove member from project"""
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         
         project = Project.query.get(project_id)
         if not project:
@@ -340,7 +340,7 @@ class ProjectAnalytics(Resource):
     @projects_ns.response(404, 'Project not found')
     def get(self, project_id):
         """Get project analytics and statistics"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:

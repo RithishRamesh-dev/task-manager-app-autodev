@@ -90,8 +90,8 @@ class UserRegistration(Resource):
         db.session.commit()
         
         # Generate tokens
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         return {
             'access_token': access_token,
@@ -123,8 +123,8 @@ class UserLogin(Resource):
             auth_ns.abort(401, "Account is deactivated")
         
         # Generate tokens
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         return {
             'access_token': access_token,
@@ -140,7 +140,7 @@ class UserProfile(Resource):
     def get(self):
         """Get current user profile"""
         user_id = get_jwt_identity()
-        user = User.query.get(user_id)
+        user = User.query.get(int(user_id))
         
         if not user:
             auth_ns.abort(404, "User not found")
@@ -156,7 +156,7 @@ class UserProfile(Resource):
     def put(self):
         """Update current user profile"""
         user_id = get_jwt_identity()
-        user = User.query.get(user_id)
+        user = User.query.get(int(user_id))
         
         if not user:
             auth_ns.abort(404, "User not found")
@@ -191,12 +191,12 @@ class TokenRefresh(Resource):
     def post(self):
         """Refresh access token using refresh token"""
         user_id = get_jwt_identity()
-        user = User.query.get(user_id)
+        user = User.query.get(int(user_id))
         
         if not user or not user.is_active:
             auth_ns.abort(401, "Invalid user or account deactivated")
         
-        new_access_token = create_access_token(identity=user_id)
+        new_access_token = create_access_token(identity=str(user_id))
         
         return {'access_token': new_access_token}
 
