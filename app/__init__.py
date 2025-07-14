@@ -95,12 +95,6 @@ def create_app(config_name='default'):
         """Health check endpoint"""
         return {'status': 'healthy', 'message': 'Task Manager API is running'}
     
-    # Add a simple test route to debug
-    @app.route('/test')
-    def test_route():
-        """Test route to verify routing works"""
-        return '<h1>Test route works!</h1>'
-    
-    # Root route is handled by auth blueprint
+    # Routes are handled by blueprints
     
     return app
