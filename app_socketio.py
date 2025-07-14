@@ -14,11 +14,15 @@ app = create_app(os.getenv('FLASK_ENV', 'default'))
 @app.cli.command()
 def deploy():
     """Run deployment tasks."""
-    # Create database tables
-    db.create_all()
-    
-    # Migrate database to latest revision
-    upgrade()
+    # Skip table creation in production to avoid startup crashes
+    # Tables are pre-created in PostgreSQL database
+    import os
+    if os.environ.get('FLASK_ENV') != 'production':
+        # Create database tables only in non-production environments
+        db.create_all()
+        
+        # Migrate database to latest revision
+        upgrade()
 
 @app.shell_context_processor
 def make_shell_context():
