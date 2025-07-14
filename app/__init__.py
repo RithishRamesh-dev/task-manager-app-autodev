@@ -1,6 +1,7 @@
 from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_socketio import SocketIO
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_restx import Api
@@ -13,6 +14,7 @@ __version__ = '1.0.0'
 
 db = SQLAlchemy()
 migrate = Migrate()
+socketio = SocketIO()
 jwt = JWTManager()
 
 
@@ -23,6 +25,7 @@ def create_app(config_name='default'):
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
+    socketio.init_app(app, cors_allowed_origins="*", async_mode='threading')
     jwt.init_app(app)
     CORS(app)
     
@@ -75,6 +78,9 @@ def create_app(config_name='default'):
     
     # Import models to ensure they are registered with SQLAlchemy
     from app.models import user, project, task, comment, project_member
+    
+    # Register WebSocket events
+    from app.websocket import events
     
     @app.context_processor
     def inject_user():
