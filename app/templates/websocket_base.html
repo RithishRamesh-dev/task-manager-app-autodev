@@ -1,0 +1,139 @@
+<!-- WebSocket Template Extension -->
+<!-- Add this to your base.html template -->
+
+<!-- Add before closing </head> tag -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<!-- Add before closing </body> tag -->
+<script src="{{ url_for('static', filename='js/websocket.js') }}"></script>
+<script>
+    // Set current user ID for WebSocket authentication
+    {% if is_authenticated and current_user %}
+    window.currentUserId = {{ current_user.id }};
+    {% endif %}
+    
+    // Set current project ID if on project page
+    {% if project %}
+    window.currentProjectId = {{ project.id }};
+    {% endif %}
+</script>
+
+<!-- Online Users Widget (optional) -->
+<div id="online-users-widget" class="position-fixed bottom-0 end-0 m-3" style="z-index: 1050;">
+    <div class="card shadow" style="width: 200px;">
+        <div class="card-header bg-success text-white">
+            <h6 class="mb-0">
+                <i class="fas fa-circle text-light"></i>
+                Online Users
+                <span id="online-users-count" class="badge bg-light text-dark">0</span>
+            </h6>
+        </div>
+        <div class="card-body p-2" id="online-users" style="max-height: 200px; overflow-y: auto;">
+            <!-- Online users will be populated here -->
+        </div>
+    </div>
+</div>
+
+<!-- Typing Indicators Container -->
+<div id="typing-indicators">
+    <!-- Typing indicators will be inserted here dynamically -->
+</div>
+
+<style>
+.online-user {
+    display: flex;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.online-user:last-child {
+    border-bottom: none;
+}
+
+.user-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    margin-right: 8px;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-info strong {
+    font-size: 12px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-info small {
+    font-size: 10px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.online-indicator {
+    width: 8px;
+    height: 8px;
+    background: #28a745;
+    border-radius: 50%;
+    margin-left: 4px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.typing-indicator {
+    background: rgba(0, 123, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #007bff;
+    margin: 4px 0;
+    font-style: italic;
+}
+
+.notification-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Hide online users widget on mobile */
+@media (max-width: 768px) {
+    #online-users-widget {
+        display: none;
+    }
+}
+</style>
