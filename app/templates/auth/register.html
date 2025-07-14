@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Task Manager{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0 text-center">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       placeholder="Choose a username" required
+                                       value="{{ request.form.get('username', '') }}"
+                                       minlength="3" maxlength="80">
+                            </div>
+                            <div class="form-text">3-80 characters, letters, numbers, and underscores only</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="Enter your email" required
+                                       value="{{ request.form.get('email', '') }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-id-card"></i>
+                            </span>
+                            <input type="text" class="form-control" id="full_name" name="full_name" 
+                                   placeholder="Enter your full name" required
+                                   value="{{ request.form.get('full_name', '') }}"
+                                   maxlength="200">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Create a password" required minlength="6">
+                            </div>
+                            <div class="form-text">Minimum 6 characters with letters and numbers</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                       placeholder="Confirm your password" required>
+                            </div>
+                            <div id="password-match" class="form-text"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success" id="submit-btn">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small class="text-muted">
+                    Already have an account? 
+                    <a href="{{ url_for('auth.login') }}" class="text-decoration-none">
+                        Login here
+                    </a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Overview -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8 col-lg-6">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-star text-warning"></i> What you'll get with your account:
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="small mb-0">
+                            <li><i class="fas fa-check text-success"></i> Create unlimited projects</li>
+                            <li><i class="fas fa-check text-success"></i> Manage tasks and deadlines</li>
+                            <li><i class="fas fa-check text-success"></i> Collaborate with team members</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="small mb-0">
+                            <li><i class="fas fa-check text-success"></i> Real-time notifications</li>
+                            <li><i class="fas fa-check text-success"></i> Progress tracking</li>
+                            <li><i class="fas fa-check text-success"></i> Detailed analytics</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    const matchText = document.getElementById('password-match');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    function checkPasswordMatch() {
+        if (confirmPassword.value.length > 0) {
+            if (password.value === confirmPassword.value) {
+                matchText.innerHTML = '<i class="fas fa-check text-success"></i> Passwords match';
+                matchText.className = 'form-text text-success';
+                confirmPassword.classList.remove('is-invalid');
+                confirmPassword.classList.add('is-valid');
+                submitBtn.disabled = false;
+            } else {
+                matchText.innerHTML = '<i class="fas fa-times text-danger"></i> Passwords do not match';
+                matchText.className = 'form-text text-danger';
+                confirmPassword.classList.remove('is-valid');
+                confirmPassword.classList.add('is-invalid');
+                submitBtn.disabled = true;
+            }
+        } else {
+            matchText.innerHTML = '';
+            confirmPassword.classList.remove('is-valid', 'is-invalid');
+            submitBtn.disabled = false;
+        }
+    }
+    
+    password.addEventListener('input', checkPasswordMatch);
+    confirmPassword.addEventListener('input', checkPasswordMatch);
+    
+    // Auto-focus username field
+    document.getElementById('username').focus();
+});
+</script>
+{% endblock %}
