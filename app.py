@@ -6,6 +6,9 @@ from app.models.task import Task
 from app.models.comment import TaskComment
 from app.models.project_member import ProjectMember
 
+# Application version
+__version__ = '1.0.0'
+
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 
 
