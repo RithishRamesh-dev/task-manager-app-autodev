@@ -26,7 +26,7 @@ def make_shell_context():
     from app.models.user import User
     from app.models.project import Project
     from app.models.task import Task
-    from app.models.comment import Comment
+    from app.models.comment import TaskComment
     from app.models.project_member import ProjectMember
     
     return {
@@ -34,15 +34,14 @@ def make_shell_context():
         'User': User,
         'Project': Project,
         'Task': Task,
-        'Comment': Comment,
+        'TaskComment': TaskComment,
         'ProjectMember': ProjectMember,
         'app': app,
         'socketio': socketio
     }
 
-@app.before_first_request
-def create_tables():
-    """Create database tables on first request."""
+with app.app_context():
+    """Create database tables on startup."""
     db.create_all()
 
 # Health check endpoint
