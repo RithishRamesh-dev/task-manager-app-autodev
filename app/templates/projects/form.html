@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Project - Task Manager{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-{{ 'edit' if action == 'Edit' else 'plus' }}"></i> 
+                    {{ action }} Project
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <!-- Project Name -->
+                        <div class="col-md-12 mb-3">
+                            <label for="name" class="form-label">Project Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ project.name if project else '' }}" 
+                                   placeholder="Enter project name..." required>
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Choose a descriptive name for your project
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Project Description -->
+                        <div class="col-md-12 mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="4" placeholder="Enter project description...">{{ project.description if project else '' }}</textarea>
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Provide details about the project goals, scope, and objectives
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Project Status (only for editing) -->
+                        {% if action == 'Edit' and project %}
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Project Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="active" {{ 'selected' if project.status == 'active' else 'selected' if not project.status }}>
+                                    Active
+                                </option>
+                                <option value="on_hold" {{ 'selected' if project.status == 'on_hold' }}>
+                                    On Hold
+                                </option>
+                                <option value="completed" {{ 'selected' if project.status == 'completed' }}>
+                                    Completed
+                                </option>
+                                <option value="cancelled" {{ 'selected' if project.status == 'cancelled' }}>
+                                    Cancelled
+                                </option>
+                            </select>
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Update the current status of this project
+                                </small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <a href="{{ url_for('projects.detail', project_id=project.id) if project else url_for('projects.list') }}" 
+                           class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancel
+                        </a>
+                        
+                        <div>
+                            {% if project and action == 'Edit' %}
+                            <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                            {% endif %}
+                            
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> {{ action }} Project
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Project Preview (for editing) -->
+        {% if project and action == 'Edit' %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-eye"></i> Current Project Details
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Created:</strong> {{ project.created_at[:10] if project.created_at }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Updated:</strong> {{ project.updated_at[:10] if project.updated_at }}
+                    </div>
+                </div>
+                
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <strong>Owner:</strong> User #{{ project.owner_id }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Project ID:</strong> {{ project.id }}
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{{ url_for('projects.detail', project_id=project.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> View Full Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Project Guidelines -->
+        <div class="card mt-4 bg-light">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb"></i> Project Best Practices
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-check-circle text-success"></i> Do's</h6>
+                        <ul class="small text-muted">
+                            <li>Use clear, descriptive project names</li>
+                            <li>Include project goals in description</li>
+                            <li>Add team members with appropriate roles</li>
+                            <li>Break down work into manageable tasks</li>
+                            <li>Update project status regularly</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-times-circle text-danger"></i> Don'ts</h6>
+                        <ul class="small text-muted">
+                            <li>Don't use vague or generic names</li>
+                            <li>Don't leave description empty</li>
+                            <li>Don't add unrelated tasks</li>
+                            <li>Don't ignore overdue tasks</li>
+                            <li>Don't forget to archive completed projects</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+{% if project and action == 'Edit' %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger"></i> Delete Project
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this project?</p>
+                <div class="alert alert-danger">
+                    <strong>{{ project.name }}</strong>
+                    <br>
+                    <small>
+                        This will permanently delete the project and all associated tasks, 
+                        comments, and member assignments. This action cannot be undone.
+                    </small>
+                </div>
+                
+                <!-- Warning about tasks -->
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> This project may contain tasks and data that will be lost forever.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('projects.delete', project_id=project.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Project
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize description textarea
+    const descriptionTextarea = document.getElementById('description');
+    if (descriptionTextarea) {
+        descriptionTextarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        // Initial resize
+        descriptionTextarea.style.height = (descriptionTextarea.scrollHeight) + 'px';
+    }
+    
+    // Character counter for project name
+    const nameInput = document.getElementById('name');
+    if (nameInput) {
+        nameInput.addEventListener('input', function() {
+            const maxLength = 100; // Reasonable limit for project names
+            const currentLength = this.value.length;
+            
+            // Create or update character counter
+            let counter = document.getElementById('name-counter');
+            if (!counter) {
+                counter = document.createElement('div');
+                counter.id = 'name-counter';
+                counter.className = 'form-text';
+                nameInput.parentNode.appendChild(counter);
+            }
+            
+            counter.innerHTML = `<small class="text-muted">${currentLength}/${maxLength} characters</small>`;
+            
+            if (currentLength > maxLength) {
+                counter.className = 'form-text text-danger';
+                this.classList.add('is-invalid');
+            } else {
+                counter.className = 'form-text text-muted';
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+    
+    // Form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value.trim();
+            
+            if (!name) {
+                e.preventDefault();
+                alert('Project name is required.');
+                document.getElementById('name').focus();
+                return;
+            }
+            
+            if (name.length > 100) {
+                e.preventDefault();
+                alert('Project name is too long. Please use 100 characters or less.');
+                document.getElementById('name').focus();
+                return;
+            }
+        });
+    }
+    
+    // Status change warning for completed projects
+    const statusSelect = document.getElementById('status');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            if (this.value === 'completed') {
+                if (!confirm('Marking a project as completed will affect task visibility and member access. Continue?')) {
+                    // Reset to previous value
+                    this.value = this.getAttribute('data-original-value') || 'active';
+                }
+            }
+        });
+        
+        // Store original value
+        statusSelect.setAttribute('data-original-value', statusSelect.value);
+    }
+});
+
+// Auto-save draft functionality (for future enhancement)
+function autoSaveDraft() {
+    const name = document.getElementById('name').value;
+    const description = document.getElementById('description').value;
+    
+    if (name || description) {
+        // Could save to localStorage for draft recovery
+        localStorage.setItem('project_draft', JSON.stringify({
+            name: name,
+            description: description,
+            timestamp: new Date().toISOString()
+        }));
+    }
+}
+
+// Save draft every 30 seconds
+setInterval(autoSaveDraft, 30000);
+</script>
+{% endblock %}

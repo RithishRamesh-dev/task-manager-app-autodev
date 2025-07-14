@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Task Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+    <div>
+        <a href="{{ url_for('projects.create') }}" class="btn btn-primary me-2">
+            <i class="fas fa-plus"></i> New Project
+        </a>
+        <a href="{{ url_for('tasks.create') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> New Task
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.total_projects or 0 }}</h4>
+                        <p class="card-text">Projects</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-folder fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('projects.list') }}" class="text-white text-decoration-none">
+                    View all <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-info h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.assigned_tasks or 0 }}</h4>
+                        <p class="card-text">Assigned Tasks</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-tasks fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('tasks.list') }}?assigned_to=me" class="text-white text-decoration-none">
+                    View all <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.completed_tasks or 0 }}</h4>
+                        <p class="card-text">Completed</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('tasks.list') }}?status=completed" class="text-white text-decoration-none">
+                    View all <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-warning h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ stats.overdue_tasks or 0 }}</h4>
+                        <p class="card-text">Overdue</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('tasks.list') }}?overdue=true" class="text-white text-decoration-none">
+                    View all <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Completion Rate Progress -->
+{% if stats.completion_rate is defined %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-line"></i> Completion Rate
+                </h5>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {{ stats.completion_rate or 0 }}%"
+                         aria-valuenow="{{ stats.completion_rate or 0 }}" 
+                         aria-valuemin="0" aria-valuemax="100">
+                        {{ "%.0f"|format(stats.completion_rate or 0) }}%
+                    </div>
+                </div>
+                <small class="text-muted mt-1 d-block">
+                    {{ stats.completed_tasks or 0 }} of {{ stats.assigned_tasks or 0 }} tasks completed
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- Recent Tasks -->
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock"></i> Recent Tasks
+                </h5>
+                <a href="{{ url_for('tasks.list') }}" class="btn btn-sm btn-outline-primary">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_tasks %}
+                    <div class="list-group list-group-flush">
+                        {% for task in recent_tasks %}
+                        <div class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">
+                                    <a href="{{ url_for('tasks.detail', task_id=task.id) }}" 
+                                       class="text-decoration-none">
+                                        {{ task.title }}
+                                    </a>
+                                </div>
+                                <small class="text-muted">
+                                    {% if task.due_date %}
+                                        <i class="fas fa-calendar"></i> Due: {{ task.due_date[:10] }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-{{ task.status == 'completed' and 'success' or 
+                                                         task.status == 'in_progress' and 'info' or 
+                                                         task.status == 'cancelled' and 'dark' or 'light' }}">
+                                    {{ task.status.replace('_', ' ').title() }}
+                                </span>
+                                <br>
+                                <span class="badge bg-{{ task.priority == 'critical' and 'danger' or 
+                                                         task.priority == 'high' and 'warning' or 
+                                                         task.priority == 'medium' and 'primary' or 'secondary' }}">
+                                    {{ task.priority.title() }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-tasks fa-3x mb-3"></i>
+                        <p>No recent tasks found.</p>
+                        <a href="{{ url_for('tasks.create') }}" class="btn btn-primary">
+                            Create Your First Task
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Links -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-rocket"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('projects.create') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus"></i> Create Project
+                    </a>
+                    <a href="{{ url_for('tasks.create') }}" class="btn btn-outline-success">
+                        <i class="fas fa-plus"></i> Create Task
+                    </a>
+                    <a href="{{ url_for('projects.list') }}" class="btn btn-outline-info">
+                        <i class="fas fa-folder"></i> Browse Projects
+                    </a>
+                    <a href="{{ url_for('tasks.list') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-list"></i> View All Tasks
+                    </a>
+                </div>
+                
+                <!-- My Projects -->
+                {% if projects %}
+                <hr>
+                <h6 class="fw-bold">My Projects</h6>
+                <div class="list-group list-group-flush">
+                    {% for project in projects[:3] %}
+                    <a href="{{ url_for('projects.detail', project_id=project.id) }}" 
+                       class="list-group-item list-group-item-action border-0">
+                        <div class="d-flex w-100 justify-content-between">
+                            <small class="fw-bold">{{ project.name }}</small>
+                            {% if project.stats %}
+                            <small class="text-muted">
+                                {{ project.stats.completed }}/{{ project.stats.total }}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% endfor %}
+                    {% if projects|length > 3 %}
+                    <a href="{{ url_for('projects.list') }}" 
+                       class="list-group-item list-group-item-action border-0 text-center">
+                        <small class="text-muted">View {{ projects|length - 3 }} more...</small>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh dashboard data every 30 seconds
+setInterval(function() {
+    location.reload();
+}, 30000);
+
+// Add some animations to cards
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

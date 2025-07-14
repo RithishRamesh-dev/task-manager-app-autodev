@@ -1,9 +1,9 @@
 /**
- * Task Manager Application JavaScript with WebSocket Integration
+ * Task Manager Application JavaScript
  * Main application functionality and utilities
  */
 
-// Global application object with WebSocket support
+// Global application object
 window.TaskManager = {
     // Configuration
     config: {
@@ -11,8 +11,7 @@ window.TaskManager = {
         refreshInterval: 30000, // 30 seconds
         animationDuration: 300,
         debounceDelay: 500,
-        maxRetries: 3,
-        websocketEnabled: true
+        maxRetries: 3
     },
     
     // Utilities
@@ -27,106 +26,13 @@ window.TaskManager = {
     // Event handlers
     events: {},
     
-    // WebSocket integration
-    websocket: null,
-    
     // Initialize application
     init: function() {
         this.utils.init();
         this.api.init();
         this.events.init();
         this.components.init();
-        
-        // Initialize WebSocket if enabled and available
-        if (this.config.websocketEnabled && typeof TaskManagerWebSocket !== 'undefined') {
-            this.initWebSocket();
-        }
-        
-        console.log('Task Manager application initialized with WebSocket support');
-    },
-    
-    // Initialize WebSocket integration
-    initWebSocket: function() {
-        this.websocket = TaskManagerWebSocket;
-        
-        // Register WebSocket event handlers
-        this.websocket.on('taskCreated', this.onTaskCreated.bind(this));
-        this.websocket.on('taskUpdated', this.onTaskUpdated.bind(this));
-        this.websocket.on('taskDeleted', this.onTaskDeleted.bind(this));
-        this.websocket.on('taskStatusChanged', this.onTaskStatusChanged.bind(this));
-        this.websocket.on('commentAdded', this.onCommentAdded.bind(this));
-        this.websocket.on('projectUpdated', this.onProjectUpdated.bind(this));
-        this.websocket.on('notification', this.onWebSocketNotification.bind(this));
-        this.websocket.on('userConnected', this.onUserConnected.bind(this));
-        this.websocket.on('userDisconnected', this.onUserDisconnected.bind(this));
-        
-        console.log('WebSocket event handlers registered');
-    },
-    
-    // WebSocket event handlers
-    onTaskCreated: function(data) {
-        // Refresh task-related UI components
-        this.components.refreshTaskList();
-        this.components.updateDashboardStats();
-        
-        // Emit custom event for other components
-        this.events.emit('taskCreated', data);
-    },
-    
-    onTaskUpdated: function(data) {
-        // Update task in UI
-        this.components.updateTaskInUI(data.task);
-        this.components.updateDashboardStats();
-        
-        // Emit custom event
-        this.events.emit('taskUpdated', data);
-    },
-    
-    onTaskDeleted: function(data) {
-        // Remove task from UI
-        this.components.removeTaskFromUI(data.task_id);
-        this.components.updateDashboardStats();
-        
-        // Emit custom event
-        this.events.emit('taskDeleted', data);
-    },
-    
-    onTaskStatusChanged: function(data) {
-        // Update task status in UI
-        this.components.updateTaskStatus(data.task_id, data.new_status);
-        this.components.updateDashboardStats();
-        
-        // Emit custom event
-        this.events.emit('taskStatusChanged', data);
-    },
-    
-    onCommentAdded: function(data) {
-        // Add comment to UI if viewing the task
-        this.components.addCommentToTask(data.comment);
-        
-        // Emit custom event
-        this.events.emit('commentAdded', data);
-    },
-    
-    onProjectUpdated: function(data) {
-        // Update project in UI
-        this.components.updateProjectInUI(data.project);
-        
-        // Emit custom event
-        this.events.emit('projectUpdated', data);
-    },
-    
-    onWebSocketNotification: function(data) {
-        // Show notification
-        this.utils.showNotification(data.message, data.type);
-    },
-    
-    onUserConnected: function(data) {
-        console.log(`User ${data.full_name} connected`);
-    },
-    
-    onUserDisconnected: function(data) {
-        console.log(`User ${data.full_name} disconnected`);
+        console.log('Task Manager application initialized');
     }
 };
 
@@ -145,9 +51,6 @@ TaskManager.utils = {
             const form = e.target;
             if (form.tagName === 'FORM') {
                 TaskManager.utils.showFormLoading(form);
-                
-                // Emit WebSocket events for real-time updates
-                TaskManager.utils.handleFormSubmissionWebSocket(form);
             }
         });
         
@@ -165,61 +68,6 @@ TaskManager.utils = {
                 TaskManager.utils.handleWindowResize();
             }, 250);
         });
-        
-        // Handle page visibility changes for WebSocket optimization
-        document.addEventListener('visibilitychange', function() {
-            if (TaskManager.websocket) {
-                if (document.hidden) {
-                    // Page is hidden, reduce WebSocket activity
-                    console.log('Page hidden, reducing WebSocket activity');
-                } else {
-                    // Page is visible, resume normal WebSocket activity
-                    console.log('Page visible, resuming WebSocket activity');
-                    TaskManager.websocket.emit('get_online_users', { 
-                        project_id: TaskManager.websocket.currentProjectId 
-                    });
-                }
-            }
-        });
-    },
-    
-    // Handle form submission WebSocket events
-    handleFormSubmissionWebSocket: function(form) {
-        if (!TaskManager.websocket || !TaskManager.websocket.isConnected) {
-            return;
-        }
-        
-        const action = form.action;
-        const method = form.method.toLowerCase();
-        
-        // Task creation form
-        if (action.includes('/tasks') && method === 'post' && !action.includes('/comments')) {
-            form.addEventListener('submit', function() {
-                setTimeout(function() {
-                    const titleInput = form.querySelector('[name="title"]');
-                    const projectInput = form.querySelector('[name="project_id"]');
-                    
-                    if (titleInput && projectInput && titleInput.value && projectInput.value) {
-                        // This will be triggered after successful form submission
-                        // The actual WebSocket event will be emitted from the server
-                    }
-                }, 100);
-            });
-        }
-        
-        // Comment form
-        if (action.includes('/comments') && method === 'post') {
-            form.addEventListener('submit', function() {
-                setTimeout(function() {
-                    const commentInput = form.querySelector('[name="comment_text"]');
-                    const taskId = window.location.pathname.match(/\/tasks\/(\d+)/)?.[1];
-                    
-                    if (commentInput && taskId && commentInput.value.trim()) {
-                        // WebSocket event will be emitted from server after successful comment creation
-                    }
-                }, 100);
-            });
-        }
     },
     
     // Initialize Bootstrap tooltips
@@ -272,7 +120,7 @@ TaskManager.utils = {
     showNotification: function(message, type = 'info', duration = 5000) {
         // Create notification element
         const notification = document.createElement('div');
-        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed notification-toast`;
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
         notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
         notification.innerHTML = `
             ${message}
@@ -327,12 +175,6 @@ TaskManager.utils = {
         const isMobile = window.innerWidth < 768;
         document.body.classList.toggle('mobile-layout', isMobile);
         
-        // Hide/show online users widget on mobile
-        const onlineUsersWidget = document.querySelector('#online-users-widget');
-        if (onlineUsersWidget) {
-            onlineUsersWidget.style.display = isMobile ? 'none' : 'block';
-        }
-        
         // Emit custom event
         window.dispatchEvent(new CustomEvent('taskmanager:resize', {
             detail: { isMobile: isMobile }
@@ -369,7 +211,122 @@ TaskManager.utils = {
     }
 };
 
-// Enhanced Component system with WebSocket integration
+// API utilities
+TaskManager.api = {
+    init: function() {
+        this.setupRetryLogic();
+    },
+    
+    // Setup retry logic for failed requests
+    setupRetryLogic: function() {
+        // This would be implemented with a proper HTTP client
+        // For now, we'll use fetch with retry logic
+    },
+    
+    // Make API request with retry logic
+    request: function(method, endpoint, data = null, retries = 0) {
+        const url = `${TaskManager.config.apiBaseUrl}${endpoint}`;
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        };
+        
+        // Add authentication header if available
+        const token = TaskManager.utils.storage.get('auth_token');
+        if (token) {
+            options.headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        // Add data for POST/PUT requests
+        if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+            options.body = JSON.stringify(data);
+        }
+        
+        return fetch(url, options)
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .catch(function(error) {
+                if (retries < TaskManager.config.maxRetries) {
+                    console.warn(`Request failed, retrying... (${retries + 1}/${TaskManager.config.maxRetries})`);
+                    return TaskManager.api.request(method, endpoint, data, retries + 1);
+                }
+                throw error;
+            });
+    },
+    
+    // Specific API methods
+    tasks: {
+        getAll: function(filters = {}) {
+            const params = new URLSearchParams(filters);
+            return TaskManager.api.request('GET', `/tasks?${params}`);
+        },
+        
+        getById: function(id) {
+            return TaskManager.api.request('GET', `/tasks/${id}`);
+        },
+        
+        create: function(data) {
+            return TaskManager.api.request('POST', '/tasks', data);
+        },
+        
+        update: function(id, data) {
+            return TaskManager.api.request('PUT', `/tasks/${id}`, data);
+        },
+        
+        delete: function(id) {
+            return TaskManager.api.request('DELETE', `/tasks/${id}`);
+        },
+        
+        updateStatus: function(id, status) {
+            return TaskManager.api.request('PATCH', `/tasks/${id}/status`, { status });
+        }
+    },
+    
+    projects: {
+        getAll: function() {
+            return TaskManager.api.request('GET', '/projects');
+        },
+        
+        getById: function(id) {
+            return TaskManager.api.request('GET', `/projects/${id}`);
+        },
+        
+        create: function(data) {
+            return TaskManager.api.request('POST', '/projects', data);
+        },
+        
+        update: function(id, data) {
+            return TaskManager.api.request('PUT', `/projects/${id}`, data);
+        },
+        
+        delete: function(id) {
+            return TaskManager.api.request('DELETE', `/projects/${id}`);
+        }
+    },
+    
+    comments: {
+        create: function(data) {
+            return TaskManager.api.request('POST', '/comments', data);
+        },
+        
+        update: function(id, data) {
+            return TaskManager.api.request('PUT', `/comments/${id}`, data);
+        },
+        
+        delete: function(id) {
+            return TaskManager.api.request('DELETE', `/comments/${id}`);
+        }
+    }
+};
+
+// Component system
 TaskManager.components = {
     init: function() {
         this.initializeAll();
@@ -382,7 +339,6 @@ TaskManager.components = {
         this.autoSave();
         this.realTimeUpdates();
         this.dragAndDrop();
-        this.typingIndicators();
     },
     
     // Task filters component
@@ -424,25 +380,16 @@ TaskManager.components = {
         });
     },
     
-    // Quick complete task with WebSocket notification
+    // Quick complete task
     quickCompleteTask: function(taskId) {
-        const oldStatus = this.getTaskStatus(taskId);
-        
         TaskManager.api.tasks.updateStatus(taskId, 'completed')
-            .then(function(response) {
+            .then(function() {
                 TaskManager.utils.showNotification('Task marked as completed!', 'success');
-                
-                // Emit WebSocket event
-                if (TaskManager.websocket && TaskManager.websocket.isConnected) {
-                    TaskManager.websocket.emit('task_status_changed', {
-                        task_id: taskId,
-                        old_status: oldStatus,
-                        new_status: 'completed'
-                    });
-                }
-                
                 // Update UI
-                TaskManager.components.updateTaskStatus(taskId, 'completed');
+                const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+                if (taskElement) {
+                    taskElement.classList.add('completed');
+                }
             })
             .catch(function(error) {
                 TaskManager.utils.showNotification('Failed to update task status', 'error');
@@ -450,45 +397,16 @@ TaskManager.components = {
             });
     },
     
-    // Get current task status
-    getTaskStatus: function(taskId) {
-        const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
-        const statusElement = taskElement?.querySelector('.task-status');
-        return statusElement?.dataset.status || 'pending';
-    },
-    
-    // Typing indicators for comment forms
-    typingIndicators: function() {
-        const commentForms = document.querySelectorAll('form[action*="comments"]');
-        
-        commentForms.forEach(function(form) {
-            const textarea = form.querySelector('textarea[name="comment_text"]');
-            const taskId = window.location.pathname.match(/\/tasks\/(\d+)/)?.[1];
-            
-            if (!textarea || !taskId) return;
-            
-            let typingTimeout;
-            
-            textarea.addEventListener('input', function() {
-                if (TaskManager.websocket && TaskManager.websocket.isConnected) {
-                    TaskManager.websocket.sendTypingIndicator(taskId, true);
-                }
-                
-                clearTimeout(typingTimeout);
-                typingTimeout = setTimeout(function() {
-                    if (TaskManager.websocket && TaskManager.websocket.isConnected) {
-                        TaskManager.websocket.sendTypingIndicator(taskId, false);
-                    }
-                }, 3000);
+    // Quick start task
+    quickStartTask: function(taskId) {
+        TaskManager.api.tasks.updateStatus(taskId, 'in_progress')
+            .then(function() {
+                TaskManager.utils.showNotification('Task started!', 'info');
+            })
+            .catch(function(error) {
+                TaskManager.utils.showNotification('Failed to start task', 'error');
+                console.error('Error starting task:', error);
             });
-            
-            textarea.addEventListener('blur', function() {
-                clearTimeout(typingTimeout);
-                if (TaskManager.websocket && TaskManager.websocket.isConnected) {
-                    TaskManager.websocket.sendTypingIndicator(taskId, false);
-                }
-            });
-        });
     },
     
     // Auto-save functionality
@@ -538,85 +456,23 @@ TaskManager.components = {
         }, 2000);
     },
     
-    // Real-time updates enhanced with WebSocket
+    // Real-time updates
     realTimeUpdates: function() {
-        // Traditional polling as fallback when WebSocket is not available
-        if (!TaskManager.websocket || !TaskManager.websocket.isConnected) {
-            setInterval(function() {
-                TaskManager.components.checkForUpdates();
-            }, TaskManager.config.refreshInterval);
-        }
+        // Simulate real-time updates (in a real app, use WebSockets)
+        setInterval(function() {
+            TaskManager.components.checkForUpdates();
+        }, TaskManager.config.refreshInterval);
     },
     
-    // Check for updates (fallback method)
+    // Check for updates
     checkForUpdates: function() {
+        // This would check for new data and update the UI
+        // For now, we'll just refresh certain counters
         const badges = document.querySelectorAll('[data-live-count]');
         badges.forEach(function(badge) {
             const type = badge.dataset.liveCount;
             // In a real app, fetch updated counts from API
         });
-    },
-    
-    // Update task status in UI
-    updateTaskStatus: function(taskId, status) {
-        const taskElements = document.querySelectorAll(`[data-task-id="${taskId}"]`);
-        taskElements.forEach(function(element) {
-            const statusElement = element.querySelector('.task-status');
-            if (statusElement) {
-                statusElement.className = `task-status badge bg-${TaskManager.components.getStatusClass(status)}`;
-                statusElement.textContent = status.replace('_', ' ').toUpperCase();
-                statusElement.dataset.status = status;
-            }
-        });
-    },
-    
-    // Refresh dashboard statistics
-    updateDashboardStats: function() {
-        // Update dashboard statistics if on dashboard page
-        if (window.location.pathname.includes('/dashboard')) {
-            // This would typically fetch updated stats from API
-            console.log('Updating dashboard statistics');
-        }
-    },
-    
-    // Utility methods for WebSocket integration
-    refreshTaskList: function() {
-        if (window.location.pathname.includes('/tasks')) {
-            // Refresh task list without full page reload
-            console.log('Refreshing task list');
-        }
-    },
-    
-    updateTaskInUI: function(task) {
-        console.log('Updating task in UI:', task);
-        // Implementation would update task information in the UI
-    },
-    
-    removeTaskFromUI: function(taskId) {
-        const taskElements = document.querySelectorAll(`[data-task-id="${taskId}"]`);
-        taskElements.forEach(function(element) {
-            element.remove();
-        });
-    },
-    
-    addCommentToTask: function(comment) {
-        console.log('Adding comment to task:', comment);
-        // Implementation would add comment to task detail view
-    },
-    
-    updateProjectInUI: function(project) {
-        console.log('Updating project in UI:', project);
-        // Implementation would update project information in the UI
-    },
-    
-    getStatusClass: function(status) {
-        const statusClasses = {
-            'pending': 'light',
-            'in_progress': 'info',
-            'completed': 'success',
-            'cancelled': 'dark'
-        };
-        return statusClasses[status] || 'secondary';
     },
     
     // Drag and drop functionality
@@ -653,21 +509,10 @@ TaskManager.components = {
                 
                 const taskId = e.dataTransfer.getData('text/plain');
                 const newStatus = zone.dataset.dropZone;
-                const oldStatus = TaskManager.components.getTaskStatus(taskId);
                 
                 TaskManager.api.tasks.updateStatus(taskId, newStatus)
                     .then(function() {
                         TaskManager.utils.showNotification('Task status updated!', 'success');
-                        
-                        // Emit WebSocket event
-                        if (TaskManager.websocket && TaskManager.websocket.isConnected) {
-                            TaskManager.websocket.emit('task_status_changed', {
-                                task_id: taskId,
-                                old_status: oldStatus,
-                                new_status: newStatus
-                            });
-                        }
-                        
                         // Move element to new zone
                         const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
                         if (taskElement) {
@@ -683,10 +528,8 @@ TaskManager.components = {
     }
 };
 
-// Enhanced Event handling system
+// Event handling system
 TaskManager.events = {
-    handlers: {},
-    
     init: function() {
         this.setupEventListeners();
     },
@@ -703,39 +546,11 @@ TaskManager.events = {
         document.addEventListener('keydown', this.handleKeyboardShortcuts);
     },
     
-    // Custom event system
-    on: function(event, handler) {
-        if (!this.handlers[event]) {
-            this.handlers[event] = [];
-        }
-        this.handlers[event].push(handler);
-    },
-    
-    off: function(event, handler) {
-        if (this.handlers[event]) {
-            const index = this.handlers[event].indexOf(handler);
-            if (index > -1) {
-                this.handlers[event].splice(index, 1);
-            }
-        }
-    },
-    
-    emit: function(event, data) {
-        if (this.handlers[event]) {
-            this.handlers[event].forEach(function(handler) {
-                try {
-                    handler(data);
-                } catch (error) {
-                    console.error(`Error in ${event} handler:`, error);
-                }
-            });
-        }
-    },
-    
     // Event handlers
     onTaskCreated: function(event) {
         TaskManager.utils.showNotification('Task created successfully!', 'success');
-        TaskManager.components.updateDashboardStats();
+        // Refresh relevant UI components
+        TaskManager.components.checkForUpdates();
     },
     
     onTaskUpdated: function(event) {
@@ -776,25 +591,6 @@ TaskManager.events = {
             if (openModal && typeof bootstrap !== 'undefined') {
                 bootstrap.Modal.getInstance(openModal)?.hide();
             }
-        }
-    }
-};
-
-// Basic API utilities (placeholder for full implementation)
-TaskManager.api = {
-    init: function() {
-        // API initialization
-    },
-    
-    tasks: {
-        updateStatus: function(id, status) {
-            return fetch(`/api/tasks/${id}/status`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: status })
-            }).then(response => response.json());
         }
     }
 };
