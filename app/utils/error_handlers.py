@@ -42,10 +42,16 @@ def register_error_handlers(app):
     @app.errorhandler(404)
     def handle_not_found(error):
         """Handle 404 errors"""
-        return jsonify({
-            'error': 'Not Found',
-            'message': 'The requested resource was not found'
-        }), 404
+        # Only return JSON for API routes (starting with /api/)
+        if request.path.startswith('/api/'):
+            return jsonify({
+                'error': 'Not Found',
+                'message': 'The requested resource was not found'
+            }), 404
+        else:
+            # For frontend routes, redirect to login page
+            from flask import redirect, url_for
+            return redirect(url_for('auth.login'))
     
     @app.errorhandler(403)
     def handle_forbidden(error):

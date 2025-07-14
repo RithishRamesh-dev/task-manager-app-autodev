@@ -47,10 +47,6 @@ def create_app(config_name='default'):
         security='Bearer'
     )
     
-    # Register error handlers
-    from app.utils.error_handlers import register_error_handlers
-    register_error_handlers(app)
-    
     # Register API blueprints
     from app.api.auth import auth_ns
     from app.api.projects import projects_ns
@@ -75,6 +71,10 @@ def create_app(config_name='default'):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(projects_bp, url_prefix='/projects')
     app.register_blueprint(tasks_bp, url_prefix='/tasks')
+    
+    # Register error handlers AFTER blueprints
+    from app.utils.error_handlers import register_error_handlers
+    register_error_handlers(app)
     
     # Import models to ensure they are registered with SQLAlchemy
     from app.models import user, project, task, comment, project_member
@@ -101,10 +101,6 @@ def create_app(config_name='default'):
         """Test route to verify routing works"""
         return '<h1>Test route works!</h1>'
     
-    # Add debug root route to check if the issue is with blueprint registration
-    @app.route('/')
-    def root_debug():
-        """Debug root route"""
-        return '<h1>Root route works! <a href="/login">Go to login</a></h1>'
+    # Root route is handled by auth blueprint
     
     return app
