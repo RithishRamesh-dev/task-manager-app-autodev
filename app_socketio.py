@@ -42,7 +42,12 @@ def make_shell_context():
 
 with app.app_context():
     """Create database tables on startup."""
-    db.create_all()
+    try:
+        db.create_all()
+        print("Database tables created successfully")
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        print("Application will continue without database initialization")
 
 # Health check endpoint is defined in app/__init__.py at /api/health
 
