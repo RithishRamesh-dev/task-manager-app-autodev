@@ -95,4 +95,12 @@ def create_app(config_name='default'):
         """Health check endpoint"""
         return {'status': 'healthy', 'message': 'Task Manager API is running'}
     
+    @app.route('/')
+    def index():
+        """Root route - redirect to login or dashboard"""
+        from flask import session, redirect, url_for
+        if session.get('access_token'):
+            return redirect('/dashboard')
+        return redirect('/login')
+    
     return app

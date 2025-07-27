@@ -47,7 +47,7 @@ class CommentList(Resource):
     @comments_ns.response(404, 'Task not found')
     def get(self):
         """Get comments for a specific task"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         task_id = request.args.get('task_id', type=int)
         
         if not task_id:
@@ -75,7 +75,7 @@ class CommentList(Resource):
     @comments_ns.response(404, 'Task not found')
     def post(self):
         """Add a comment to a task"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         try:
             # Validate input data
@@ -112,7 +112,7 @@ class CommentDetail(Resource):
     @comments_ns.response(404, 'Comment not found')
     def get(self, comment_id):
         """Get comment details"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         comment = TaskComment.query.get(comment_id)
         if not comment:
@@ -134,7 +134,7 @@ class CommentDetail(Resource):
     @comments_ns.response(404, 'Comment not found')
     def put(self, comment_id):
         """Update comment text"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         comment = TaskComment.query.get(comment_id)
         if not comment:
@@ -164,7 +164,7 @@ class CommentDetail(Resource):
     @comments_ns.response(404, 'Comment not found')
     def delete(self, comment_id):
         """Delete comment"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         comment = TaskComment.query.get(comment_id)
         if not comment:
@@ -188,7 +188,7 @@ class TaskCommentList(Resource):
     @comments_ns.response(404, 'Task not found')
     def get(self, task_id):
         """Get all comments for a specific task (alternative endpoint)"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         # Check if task exists and user has access
         task = Task.query.get(task_id)

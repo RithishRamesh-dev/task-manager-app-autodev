@@ -23,13 +23,27 @@ A production-ready task management application built with Flask, PostgreSQL, and
 
 ## Quick Start
 
-### Prerequisites
+### Option 1: DevContainer (Recommended)
 
-- Python 3.9+
-- PostgreSQL
-- Redis (for WebSocket support)
+The easiest way to get started is using the provided DevContainer with VS Code:
 
-### Installation
+1. **Prerequisites**: Docker Desktop and VS Code with Dev Containers extension
+2. **Clone and Open**:
+```bash
+git clone https://github.com/RithishRamesh-dev/task-manager-app-autodev.git
+cd task-manager-app-autodev
+code .
+```
+3. **Launch DevContainer**: Select "Reopen in Container" when prompted
+4. **Automatic Setup**: The container automatically sets up:
+   - PostgreSQL database (taskmanager_dev)
+   - Redis for WebSocket sessions
+   - Python dependencies
+   - Database migrations
+
+### Option 2: Manual Installation
+
+**Prerequisites**: Python 3.9+, PostgreSQL, and Redis installed locally
 
 1. Clone the repository:
 ```bash
@@ -51,24 +65,31 @@ pip install -r requirements.txt
 4. Set up environment variables:
 ```bash
 cp .env.example .env
-# Edit .env with your database and other configuration
+# Edit .env with your PostgreSQL and Redis configuration
 ```
 
-5. Initialize database:
+5. Set up PostgreSQL database:
 ```bash
-flask db init
+# Create database (adjust connection details as needed)
+createdb taskmanager_dev
+```
+
+6. Initialize database:
+```bash
 flask db migrate -m "Initial migration"
 flask db upgrade
 ```
 
-6. Create admin user:
+7. Create admin user:
 ```bash
 flask create-admin
 ```
 
-7. Run the application:
+8. Run the application:
 ```bash
-flask run
+python app_socketio.py  # Recommended - includes WebSocket support
+# OR
+flask run              # Basic Flask server
 ```
 
 ## Database Schema
@@ -121,6 +142,12 @@ flask run
 
 ## Development
 
+### DevContainer Benefits
+- **Consistent Environment**: Same PostgreSQL and Redis versions as production
+- **Zero Setup**: Everything configured automatically
+- **Claude Code Ready**: Integrated support with security restrictions
+- **Team Collaboration**: Standardized development environment
+
 ### Running Tests
 ```bash
 pytest
@@ -152,10 +179,13 @@ The application is configured for deployment on DigitalOcean App Platform with a
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Open the project in VS Code with DevContainer support
+3. Create a feature branch (`git checkout -b feature/amazing-feature`)
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+**Note**: Please use the DevContainer for development to ensure consistency across the team.
 
 ## License
 

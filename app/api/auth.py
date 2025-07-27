@@ -90,8 +90,8 @@ class UserRegistration(Resource):
         db.session.commit()
         
         # Generate tokens
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         return {
             'access_token': access_token,
@@ -123,8 +123,8 @@ class UserLogin(Resource):
             auth_ns.abort(401, "Account is deactivated")
         
         # Generate tokens
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         return {
             'access_token': access_token,
@@ -139,7 +139,7 @@ class UserProfile(Resource):
     @auth_ns.response(401, 'Authentication required')
     def get(self):
         """Get current user profile"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
@@ -155,7 +155,7 @@ class UserProfile(Resource):
     @auth_ns.response(409, 'Email already exists')
     def put(self):
         """Update current user profile"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
@@ -190,13 +190,13 @@ class TokenRefresh(Resource):
     @auth_ns.response(401, 'Invalid refresh token')
     def post(self):
         """Refresh access token using refresh token"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user or not user.is_active:
             auth_ns.abort(401, "Invalid user or account deactivated")
         
-        new_access_token = create_access_token(identity=user_id)
+        new_access_token = create_access_token(identity=str(user_id))
         
         return {'access_token': new_access_token}
 
