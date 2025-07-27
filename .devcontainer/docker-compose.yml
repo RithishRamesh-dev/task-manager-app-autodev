@@ -5,6 +5,7 @@ services:
       dockerfile: .devcontainer/Dockerfile
     volumes:
       - ..:/workspace
+      - ${HOME}/.claude:/home/claude/.claude
     working_dir: /workspace
     command: sleep infinity
     ports:

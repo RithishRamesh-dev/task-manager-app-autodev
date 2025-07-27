@@ -8,9 +8,28 @@
     
     "postCreateCommand": "pip install -r requirements.txt",
     
+    "mounts": [
+        "source=${localEnv:HOME}/.claude,target=/home/claude/.claude,type=bind"
+    ],
+    
+    "remoteEnv": {
+        "CLAUDE_CONFIG_DIR": "/home/claude/.claude",
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+    },
+    
     "customizations": {
         "vscode": {
-            "extensions": ["ms-python.python"]
+            "extensions": [
+                "ms-python.python",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "eamodio.gitlens"
+            ],
+            "settings": {
+                "editor.formatOnSave": true,
+                "editor.defaultFormatter": "esbenp.prettier-vscode",
+                "terminal.integrated.defaultProfile.linux": "bash"
+            }
         }
     }
 }
