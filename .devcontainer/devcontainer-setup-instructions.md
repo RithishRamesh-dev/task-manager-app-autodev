@@ -1,5 +1,16 @@
 # DevContainer Auto-Setup Instructions for LLM Agents
 
+This file contains detailed steps for setting up a .devcontainer folder in this project.
+
+Before taking any action:
+	1.	Carefully read and understand the entire document.
+	2.	Pause and create a clear, step-by-step plan based on the instructions below. Do not start creating files or directories until you’ve outlined this plan.
+	3.	Share your plan with the user for review and confirmation.
+	4.	Only after approval, proceed to implement the .devcontainer setup.
+
+If any step seems ambiguous or incomplete, ask clarifying questions before proceeding. Accuracy and alignment are more important than speed.
+
+
 This document provides systematic instructions for LLM agents to automatically analyze any repository and generate a complete DevContainer setup for local development. Supports **Node.js**, **Python**, and **Go** projects with automatic database detection and configuration.
 
 ## Core Objectives
@@ -401,11 +412,6 @@ NODE_ENV=development
 FLASK_ENV=development
 GO_ENV=development
 
-# DigitalOcean Configuration (when detected)
-{{#if digitalocean}}
-# Mount your DO credentials: ~/.config/doctl -> /home/vscode/.config/doctl
-DIGITALOCEAN_TOKEN={{DO_TOKEN_FROM_HOST}}
-{{/if}}
 EOF
 ```
 
@@ -438,42 +444,60 @@ mkdir -p .devcontainer
 
 ### Task 10: Cloud Services and AI Tools Integration
 
-**Claude AI Integration (recommended for all projects):**
+**Step 4: Configure Cloud Service Integration**
+
+**DigitalOcean Integration**
+
+Install doctl directly in your container by adding to your Dockerfile:
+
+```dockerfile
+# Install doctl
+RUN curl -sL https://github.com/digitalocean/doctl/releases/download/v1.98.1/doctl-1.98.1-linux-amd64.tar.gz | tar -xzv && \
+    mv doctl /usr/local/bin
+```
+
+Then configure the API token in your devcontainer.json:
 
 ```json
-// Add to devcontainer.json mounts array
-"mounts": [
-    "source=${localEnv:HOME}/.claude,target=/home/claude/.claude,type=bind"
-],
 "remoteEnv": {
-    "CLAUDE_CONFIG_DIR": "/home/claude/.claude"
+  "DIGITALOCEAN_API_TOKEN": "${localEnv:DIGITALOCEAN_API_TOKEN}"
 }
 ```
 
-**DigitalOcean Integration (when DO services detected):**
+Set your token on your host machine:
 
-```json
-// Add to devcontainer.json
-"mounts": [
-    "source=${localEnv:HOME}/.config/doctl,target=/home/vscode/.config/doctl,type=bind,consistency=cached"
-],
-"remoteEnv": {
-    "DIGITALOCEAN_TOKEN": "${localEnv:DIGITALOCEAN_TOKEN}"
-}
+```bash
+export DIGITALOCEAN_API_TOKEN="your-api-token-here"
 ```
 
-**Complete mounts example with both Claude and DigitalOcean:**
+**Claude Code Integration**
+
+To use Claude Code from within your DevContainer, add the following mount to your devcontainer.json:
 
 ```json
 "mounts": [
-    "source=${localEnv:HOME}/.claude,target=/home/claude/.claude,type=bind",
-    "source=${localEnv:HOME}/.config/doctl,target=/home/vscode/.config/doctl,type=bind,consistency=cached"
+  "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
 ],
 "remoteEnv": {
-    "CLAUDE_CONFIG_DIR": "/home/claude/.claude",
-    "DIGITALOCEAN_TOKEN": "${localEnv:DIGITALOCEAN_TOKEN}"
+  "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
 }
 ```
+
+This allows you to use Claude Code commands directly from the integrated terminal while keeping your authentication persistent.
+
+**Complete Example with Both Integrations:**
+
+```json
+"mounts": [
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
+],
+"remoteEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+    "DIGITALOCEAN_API_TOKEN": "${localEnv:DIGITALOCEAN_API_TOKEN}"
+}
+```
+
+**Note**: Adjust the target paths (`/home/vscode` vs `/home/node`) based on your base image's user as verified in Phase 6.
 
 ---
 
@@ -529,6 +553,105 @@ docker build -f .devcontainer/Dockerfile -t test-build . --dry-run 2>/dev/null |
 - For database connection issues, ensure containers are running: `docker-compose ps`
 - View logs: `docker-compose logs {{SERVICE_NAME}}`
 ```
+
+---
+
+## Phase 6: Common Pitfalls and Critical Cautions
+
+### Critical Caution 1: Base Image User Verification
+
+**ALWAYS verify the correct user in the base image before proceeding:**
+
+```bash
+# Before creating Dockerfile, check what users exist in the base image
+docker run --rm {{BASE_IMAGE}} cat /etc/passwd | grep -E "(vscode|node|python|go)"
+
+# Common base image users:
+# - mcr.microsoft.com/devcontainers/javascript-node:* → uses 'node' user
+# - mcr.microsoft.com/devcontainers/python:* → uses 'vscode' user  
+# - mcr.microsoft.com/devcontainers/go:* → uses 'vscode' user
+```
+
+**User Configuration Rules:**
+- If user already exists in base image → Use existing user, do NOT create new one
+- Update all paths in devcontainer.json to match the correct user home directory
+- Remove user creation sections from Dockerfile if user pre-exists
+- Do NOT set user in both Dockerfile AND docker-compose.yml (causes conflicts)
+
+### Critical Caution 2: User Home Directory Consistency
+
+**Ensure all mount paths match the actual user:**
+
+```json
+// WRONG - Using vscode paths when base image has node user
+"mounts": [
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
+],
+
+// CORRECT - Matching the actual base image user
+"mounts": [
+    "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind"
+],
+```
+
+### Critical Caution 3: Dockerfile Simplification
+
+**Avoid redundant operations that conflict with base image:**
+
+```dockerfile
+# WRONG - Trying to create user that already exists
+FROM mcr.microsoft.com/devcontainers/javascript-node:18
+RUN groupadd --gid 1000 vscode && useradd --uid 1000 --gid 1000 -m vscode
+
+# CORRECT - Use what's already available
+FROM mcr.microsoft.com/devcontainers/javascript-node:18
+# Install only what's needed beyond the base image
+RUN npm install -g typescript ts-node
+USER node  # Use existing user
+```
+
+### Critical Caution 4: Docker Compose User Settings
+
+**Do NOT specify user in docker-compose.yml if Dockerfile already sets USER:**
+
+```yaml
+# WRONG - Conflicts with Dockerfile USER directive
+services:
+  app:
+    build: ...
+    user: vscode  # Remove this line
+
+# CORRECT - Let Dockerfile handle user
+services:
+  app:
+    build: ...
+    # No user specification needed
+```
+
+### Verification Checklist Before File Generation:
+
+- [ ] **Base image user verified** with `docker run --rm <image> whoami`
+- [ ] **Mount paths match verified user** home directory  
+- [ ] **No duplicate user creation** in Dockerfile
+- [ ] **User only set in ONE place** (Dockerfile OR docker-compose.yml, not both)
+- [ ] **All file paths consistent** with chosen user
+
+### Quick Debug Commands:
+
+```bash
+# Test user and permissions
+docker run --rm <your-image> whoami
+docker run --rm <your-image> ls -la /home/
+
+# Test build without conflicts
+docker compose -f .devcontainer/docker-compose.yml build --no-cache
+
+# Test container startup
+docker compose -f .devcontainer/docker-compose.yml up -d
+docker compose -f .devcontainer/docker-compose.yml exec app whoami
+```
+
+**Remember**: Base images often come pre-configured with users and permissions. Work WITH the base image, not against it.
 
 ---
 
