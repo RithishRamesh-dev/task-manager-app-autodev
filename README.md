@@ -2,14 +2,62 @@
 
 A production-ready task management application built with Flask, PostgreSQL, and deployed on DigitalOcean App Platform.
 
+## Tutorial Overview
+
+### 1. Introduction
+In today's fast-paced development landscape, automating every possible step is key. This tutorial demonstrates how to harness the power of AI agents, specifically through the Claude Code CLI, to automate the entire application development lifecycle. By setting up MCP servers for GitHub, DigitalOcean App Platform, and DigitalOcean PostgreSQL, your AI assistant can understand complex instructions and interact with real-world services to build and deploy a production-ready application.
+
+**Goal**: To showcase maximum agent autonomy using Claude Code, triggering an entire development lifecycle with a single, high-level instruction. The agent will handle everything except the final, human-driven production approval.
+
+**Live Application Link**: https://task-manager-app-production-xp4k6.ondigitalocean.app/login  
+**Github Repository**: https://github.com/RithishRamesh-dev/task-manager-app-autodev/tree/staging
+
+### 2. Prerequisites
+- DigitalOcean Account with API tokens
+- GitHub Account with Personal Access Token
+- Node.js & npm (Version 18+)
+- Git
+- Claude Code CLI: `npm install -g claude-code`
+
+### 3. Workflow Stages
+- **Phase 1**: Project Foundation & Task Decomposition
+- **Phase 2**: Development Workflow (Feature Implementation)
+- **Phase 3**: Staging → Production Promotion
+
+### 4. Key Technologies
+- **MCP (Model Context Protocol)**: Standard for AI-tool communication
+- **Claude Code**: Command-line interface for Claude with MCP integration
+- **DigitalOcean App Platform**: PaaS for streamlined deployment
+- **DigitalOcean Managed PostgreSQL**: Fully managed database service
+
+### 5. Setup & Configuration
+
+**Add MCP Servers:**
+```bash
+# GitHub MCP Server
+claude mcp add github-mcp \
+  -e GITHUB_ACCESS_TOKEN=YOUR_GITHUB_PAT \
+  -- npx @agentic-mcps/github
+
+# DigitalOcean App Platform MCP Server
+claude mcp add digitalocean-app-mcp \
+  -e DIGITALOCEAN_API_TOKEN=YOUR_DO_APP_PAT \
+  -- npx @digitalocean/mcp
+
+# DigitalOcean PostgreSQL MCP Server (optional)
+claude mcp add digitalocean-postgres-mcp \
+  -e DIGITALOCEAN_API_TOKEN=YOUR_DO_DB_PAT \
+  -- npx @agentic-mcps/digitalocean-postgres
+
+# Verify setup
+claude mcp list
+```
+
 ## About This Project
 
 This application was created following the tutorial **"Complete App Lifecycle Development: Claude Code & MCP Automation"** by Rithish Ramesh (July 25, 2025). The tutorial demonstrates how to harness the power of AI agents through the Claude Code CLI to automate the entire application development lifecycle, from initial project setup to production deployment.
 
 The tutorial showcases maximum agent autonomy using Claude Code with MCP (Model Context Protocol) servers for GitHub, DigitalOcean App Platform, and DigitalOcean PostgreSQL. This enables an AI assistant to understand complex instructions and interact with real-world services to build and deploy production-ready applications using simple natural language prompts.
-
-**Live Application**: https://task-manager-app-production-xp4k6.ondigitalocean.app/login  
-**Tutorial Repository**: https://github.com/RithishRamesh-dev/task-manager-app-autodev
 
 ## Features
 
