@@ -13,7 +13,7 @@ In today's fast-paced development landscape, automating every possible step is k
 **Github Repository**: https://github.com/RithishRamesh-dev/task-manager-app-autodev/tree/staging
 
 ### Architecture Overview
-![Complete App Lifecycle Development](images/Complete%20App%20Lifecycle%20Development%20.png)
+![Complete App Lifecycle Development](images/Complete%20App%20Lifecycle%20Development%20.jpeg)
 
 ### 2. Prerequisites
 - DigitalOcean Account with API tokens
