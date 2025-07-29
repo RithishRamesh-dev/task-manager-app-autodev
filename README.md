@@ -12,6 +12,9 @@ In today's fast-paced development landscape, automating every possible step is k
 **Live Application Link**: https://task-manager-app-production-xp4k6.ondigitalocean.app/login  
 **Github Repository**: https://github.com/RithishRamesh-dev/task-manager-app-autodev/tree/staging
 
+### Architecture Overview
+![Complete App Lifecycle Development](images/Complete%20App%20Lifecycle%20Development%20.png)
+
 ### 2. Prerequisites
 - DigitalOcean Account with API tokens
 - GitHub Account with Personal Access Token
