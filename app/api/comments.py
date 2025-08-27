@@ -6,6 +6,7 @@ from app import db
 from app.models.user import User
 from app.models.task import Task
 from app.models.comment import TaskComment
+from app.websocket.events import emit_comment_added
 
 comments_ns = Namespace('comments', description='Comment management operations')
 
@@ -101,6 +102,12 @@ class CommentList(Resource):
         
         db.session.add(comment)
         db.session.commit()
+        
+        # Get current user for WebSocket event
+        user = User.query.get(user_id)
+        
+        # Emit WebSocket event for real-time updates
+        emit_comment_added(comment, task, user)
         
         return comment.to_dict(), 201
 
