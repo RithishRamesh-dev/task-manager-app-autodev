@@ -8,6 +8,7 @@ from app.models.user import User
 from app.models.project import Project
 from app.models.task import Task
 from app.models.project_member import ProjectMember
+from app.websocket.events import emit_task_created, emit_task_updated, emit_task_deleted
 
 tasks_ns = Namespace('tasks', description='Task management operations')
 
@@ -183,6 +184,9 @@ class TaskList(Resource):
         db.session.add(task)
         db.session.commit()
         
+        # Emit WebSocket event for real-time updates
+        emit_task_created(task, user)
+        
         return task.to_dict(), 201
 
 @tasks_ns.route('/<int:task_id>')
@@ -251,7 +255,16 @@ class TaskDetail(Resource):
             else:
                 task.unassign()
         
+        # Track changes for WebSocket event
+        changes = {k: v for k, v in data.items()}
+        
         db.session.commit()
+        
+        # Get current user for WebSocket event
+        user = User.query.get(user_id)
+        
+        # Emit WebSocket event for real-time updates
+        emit_task_updated(task, user, changes)
         
         return task.to_dict()
     
@@ -271,8 +284,18 @@ class TaskDetail(Resource):
         if not task.can_user_edit(user_id):
             tasks_ns.abort(403, "Access denied")
         
+        # Store task info for WebSocket event before deletion
+        task_title = task.title
+        project_id = task.project_id
+        
+        # Get current user for WebSocket event
+        user = User.query.get(user_id)
+        
         db.session.delete(task)
         db.session.commit()
+        
+        # Emit WebSocket event for real-time updates
+        emit_task_deleted(task_id, project_id, task_title, user)
         
         return '', 204
 
@@ -303,12 +326,22 @@ class TaskStatus(Resource):
         except ValidationError as err:
             tasks_ns.abort(400, f"Validation error: {err.messages}")
         
+        # Store old status for WebSocket event
+        old_status = task.status
+        
         # Update task status
         success = task.update_status(data['status'])
         if not success:
             tasks_ns.abort(400, "Invalid status")
         
         db.session.commit()
+        
+        # Get current user for WebSocket event
+        user = User.query.get(user_id)
+        
+        # Emit WebSocket event for status change
+        changes = {'status': {'old': old_status, 'new': data['status']}}
+        emit_task_updated(task, user, changes)
         
         return task.to_dict()
 
