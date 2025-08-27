@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Task Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+            <div class="btn-group">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                    <i class="fas fa-plus me-2"></i>New Task
+                </button>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createProjectModal">
+                    <i class="fas fa-folder-plus me-2"></i>New Project
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Tasks</h6>
+                        <h3 class="mb-0" id="totalTasks">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-tasks fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">In Progress</h6>
+                        <h3 class="mb-0" id="inProgressTasks">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Completed</h6>
+                        <h3 class="mb-0" id="completedTasks">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Overdue</h6>
+                        <h3 class="mb-0" id="overdueTasks">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Tasks -->
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Recent Tasks</h5>
+                <a href="{{ url_for('frontend.tasks') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div id="recentTasksLoader" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div id="recentTasksList" class="d-none"></div>
+                <div id="noRecentTasks" class="text-center py-4 d-none">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No tasks found. Create your first task to get started!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-folder me-2"></i>My Projects</h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="projectsLoader" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div id="projectsList" class="d-none"></div>
+                <div id="noProjects" class="text-center py-4 d-none">
+                    <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No projects found.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Task Modal -->
+<div class="modal fade" id="createTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTaskForm">
+                    <div class="mb-3">
+                        <label for="taskTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="taskTitle" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="taskDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="taskDescription" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="taskProject" class="form-label">Project</label>
+                            <select class="form-select" id="taskProject" name="project_id" required>
+                                <option value="">Select Project</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="taskPriority" class="form-label">Priority</label>
+                            <select class="form-select" id="taskPriority" name="priority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="taskDueDate" class="form-label">Due Date</label>
+                        <input type="datetime-local" class="form-control" id="taskDueDate" name="due_date">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveTask">Create Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Project Modal -->
+<div class="modal fade" id="createProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createProjectForm">
+                    <div class="mb-3">
+                        <label for="projectName" class="form-label">Project Name</label>
+                        <input type="text" class="form-control" id="projectName" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="projectDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="projectDescription" name="description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="saveProject">Create Project</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+    loadProjectsForSelect();
+    
+    // Create task handler
+    document.getElementById('saveTask').addEventListener('click', function() {
+        createTask();
+    });
+    
+    // Create project handler
+    document.getElementById('saveProject').addEventListener('click', function() {
+        createProject();
+    });
+});
+
+function loadDashboardData() {
+    const token = localStorage.getItem('access_token');
+    
+    // Load task statistics
+    fetch('/api/v1/tasks/stats', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('totalTasks').textContent = data.data.total_tasks || 0;
+            document.getElementById('inProgressTasks').textContent = data.data.in_progress_tasks || 0;
+            document.getElementById('completedTasks').textContent = data.data.completed_tasks || 0;
+            document.getElementById('overdueTasks').textContent = data.data.overdue_tasks || 0;
+        }
+    })
+    .catch(error => console.error('Error loading stats:', error));
+    
+    // Load recent tasks
+    fetch('/api/v1/tasks?limit=5&sort_by=created_at&sort_order=desc', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('recentTasksLoader').classList.add('d-none');
+        
+        if (data.success && data.data.tasks && data.data.tasks.length > 0) {
+            const tasksList = document.getElementById('recentTasksList');
+            tasksList.innerHTML = data.data.tasks.map(task => `
+                <div class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${task.title}</h6>
+                        <small class="text-muted">${formatDate(task.created_at)}</small>
+                    </div>
+                    <p class="mb-1 text-truncate">${task.description || 'No description'}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-${getPriorityColor(task.priority)}">${task.priority}</span>
+                        <span class="badge bg-${getStatusColor(task.status)}">${task.status.replace('_', ' ')}</span>
+                    </div>
+                </div>
+            `).join('');
+            tasksList.classList.remove('d-none');
+        } else {
+            document.getElementById('noRecentTasks').classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading recent tasks:', error);
+        document.getElementById('recentTasksLoader').classList.add('d-none');
+        document.getElementById('noRecentTasks').classList.remove('d-none');
+    });
+    
+    // Load projects
+    fetch('/api/v1/projects?limit=5', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('projectsLoader').classList.add('d-none');
+        
+        if (data.success && data.data.projects && data.data.projects.length > 0) {
+            const projectsList = document.getElementById('projectsList');
+            projectsList.innerHTML = data.data.projects.map(project => `
+                <div class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${project.name}</h6>
+                        <small class="text-muted">${project.tasks_count || 0} tasks</small>
+                    </div>
+                    <p class="mb-1 text-truncate">${project.description || 'No description'}</p>
+                </div>
+            `).join('');
+            projectsList.classList.remove('d-none');
+        } else {
+            document.getElementById('noProjects').classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading projects:', error);
+        document.getElementById('projectsLoader').classList.add('d-none');
+        document.getElementById('noProjects').classList.remove('d-none');
+    });
+}
+
+function loadProjectsForSelect() {
+    const token = localStorage.getItem('access_token');
+    
+    fetch('/api/v1/projects', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.data.projects) {
+            const select = document.getElementById('taskProject');
+            data.data.projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = project.name;
+                select.appendChild(option);
+            });
+        }
+    })
+    .catch(error => console.error('Error loading projects:', error));
+}
+
+function createTask() {
+    const form = document.getElementById('createTaskForm');
+    const formData = new FormData(form);
+    const token = localStorage.getItem('access_token');
+    
+    const data = {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        project_id: parseInt(formData.get('project_id')),
+        priority: formData.get('priority'),
+        due_date: formData.get('due_date') || null
+    };
+    
+    fetch('/api/v1/tasks', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Task created successfully!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
+            form.reset();
+            loadDashboardData();
+        } else {
+            showAlert(data.message || 'Failed to create task', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error creating task:', error);
+        showAlert('An error occurred. Please try again.', 'error');
+    });
+}
+
+function createProject() {
+    const form = document.getElementById('createProjectForm');
+    const formData = new FormData(form);
+    const token = localStorage.getItem('access_token');
+    
+    const data = {
+        name: formData.get('name'),
+        description: formData.get('description')
+    };
+    
+    fetch('/api/v1/projects', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Project created successfully!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('createProjectModal')).hide();
+            form.reset();
+            loadDashboardData();
+            loadProjectsForSelect();
+        } else {
+            showAlert(data.message || 'Failed to create project', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error creating project:', error);
+        showAlert('An error occurred. Please try again.', 'error');
+    });
+}
+</script>
+{% endblock %}

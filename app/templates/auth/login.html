@@ -6,83 +6,129 @@
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-4">
         <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0 text-center">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </h4>
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0"><i class="fas fa-sign-in-alt me-2"></i>Login</h4>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('auth.login') }}">
+                <form method="POST" id="loginForm">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <input type="text" class="form-control" id="username" name="username" 
-                                   placeholder="Enter your username" required
-                                   value="{{ request.form.get('username', '') }}">
-                        </div>
+                        <label for="username" class="form-label">Username or Email</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                        <div class="invalid-feedback"></div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input type="password" class="form-control" id="password" name="password" 
-                                   placeholder="Enter your password" required>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">Remember me</label>
                     </div>
                     
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt"></i> Login
+                            <i class="fas fa-spinner fa-spin me-2 d-none" id="loginSpinner"></i>
+                            Login
                         </button>
                     </div>
                 </form>
-            </div>
-            <div class="card-footer text-center">
-                <small class="text-muted">
-                    Don't have an account? 
-                    <a href="{{ url_for('auth.register') }}" class="text-decoration-none">
-                        Register here
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="mb-2">Don't have an account?</p>
+                    <a href="{{ url_for('frontend.register') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
                     </a>
-                </small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Demo Information -->
-<div class="row justify-content-center mt-4">
-    <div class="col-md-6 col-lg-4">
-        <div class="card bg-light">
-            <div class="card-body">
-                <h6 class="card-title">
-                    <i class="fas fa-info-circle text-info"></i> Demo Information
-                </h6>
-                <p class="card-text small">
-                    This is a demonstration of the Task Manager application. 
-                    Register a new account or create one to test the full functionality.
-                </p>
-                <ul class="small mb-0">
-                    <li>User registration and authentication</li>
-                    <li>Project and task management</li>
-                    <li>Real-time updates and collaboration</li>
-                </ul>
+                </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_scripts %}
 <script>
-// Auto-focus username field
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('username').focus();
+    const loginForm = document.getElementById('loginForm');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const loginSpinner = document.getElementById('loginSpinner');
+    
+    // Toggle password visibility
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.querySelector('i').classList.toggle('fa-eye');
+        this.querySelector('i').classList.toggle('fa-eye-slash');
+    });
+    
+    // Handle form submission
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(loginForm);
+        const data = {
+            username: formData.get('username'),
+            password: formData.get('password')
+        };
+        
+        // Show loading state
+        loginSpinner.classList.remove('d-none');
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        
+        // Clear previous errors
+        loginForm.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+        
+        fetch('/api/v1/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                localStorage.setItem('access_token', data.data.access_token);
+                localStorage.setItem('refresh_token', data.data.refresh_token);
+                window.location.href = '/dashboard';
+            } else {
+                // Handle validation errors
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        const input = document.getElementById(field);
+                        const feedback = input.nextElementSibling;
+                        if (input && feedback) {
+                            input.classList.add('is-invalid');
+                            feedback.textContent = data.errors[field][0];
+                        }
+                    });
+                } else {
+                    showAlert(data.message || 'Login failed', 'error');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('An error occurred. Please try again.', 'error');
+        })
+        .finally(() => {
+            loginSpinner.classList.add('d-none');
+            submitBtn.disabled = false;
+        });
+    });
 });
 </script>
 {% endblock %}
