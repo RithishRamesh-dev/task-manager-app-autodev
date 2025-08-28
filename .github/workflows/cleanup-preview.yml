@@ -5,7 +5,7 @@ name: Cleanup Preview App
 
 on:
   pull_request:
-    branches: [staging]
+    branches: [main]
     types: [closed]
 
 env:
