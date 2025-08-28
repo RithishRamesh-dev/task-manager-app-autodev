@@ -5,7 +5,7 @@ name: Deploy Preview App
 
 on:
   pull_request:
-    branches: [staging]
+    branches: [main]
     types: [opened, synchronize, reopened]
 
 env:
