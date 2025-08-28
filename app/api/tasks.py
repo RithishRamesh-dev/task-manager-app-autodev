@@ -99,7 +99,7 @@ class TaskList(Resource):
     @tasks_ns.response(401, 'Authentication required')
     def get(self):
         """Get list of tasks with optional filtering"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
@@ -145,7 +145,7 @@ class TaskList(Resource):
     @tasks_ns.response(404, 'Project not found')
     def post(self):
         """Create a new task"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         try:
             # Validate input data
@@ -198,7 +198,7 @@ class TaskDetail(Resource):
     @tasks_ns.response(404, 'Task not found')
     def get(self, task_id):
         """Get task details with comments"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         task = Task.query.get(task_id)
         if not task:
@@ -218,7 +218,7 @@ class TaskDetail(Resource):
     @tasks_ns.response(404, 'Task not found')
     def put(self, task_id):
         """Update task details"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         task = Task.query.get(task_id)
         if not task:
@@ -275,7 +275,7 @@ class TaskDetail(Resource):
     @tasks_ns.response(404, 'Task not found')
     def delete(self, task_id):
         """Delete task"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         task = Task.query.get(task_id)
         if not task:
@@ -310,7 +310,7 @@ class TaskStatus(Resource):
     @tasks_ns.response(404, 'Task not found')
     def patch(self, task_id):
         """Update task status"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         
         task = Task.query.get(task_id)
         if not task:
@@ -352,7 +352,7 @@ class DashboardStats(Resource):
     @tasks_ns.response(401, 'Authentication required')
     def get(self):
         """Get user dashboard statistics"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
@@ -406,7 +406,7 @@ class RecentTasks(Resource):
     @tasks_ns.response(401, 'Authentication required')
     def get(self):
         """Get recent tasks for dashboard"""
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
